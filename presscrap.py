@@ -73,7 +73,7 @@ def prepare_articles_pch24():
     for article_div in articles_divs:
         list_a = article_div.findChildren('a', recursive=True)
         article_title = article_div.findChildren('div', attrs={'class': 'TagTitle mt10'})[0].text
-        article_header = article_div.find('p').text
+        article_header = article_div.find('p').text if article_div.find('p') else ''
         article_url = f"{urls['PCH24']}{list_a[0]['href']}"
         article_color = "bb7777"
         comments = 0
@@ -168,7 +168,7 @@ def prepare_saint_block():
 
 
 def get_rid_of_non_ascii_chars(saint_name):
-    return saint_name.lower().replace('ą', 'a').replace('ę', 'e').replace('ó', 'o').replace('ś', 's').replace('ż', 'z').replace('ź', 'z').replace('ć', 'c').replace('ń', 'n').replace(' ', '%20')
+    return saint_name.lower().replace('ą', 'a').replace('ę', 'e').replace('ł', 'l').replace('ó', 'o').replace('ś', 's').replace('ż', 'z').replace('ź', 'z').replace('ć', 'c').replace('ń', 'n').replace(' ', '%20')
 
 
 def get_saint_name(saint_info):
@@ -195,7 +195,9 @@ def prepare_next_matches_block():
         first_match_info = divs[0].text.strip().replace('\n\n', ' ').replace('relacja', '')
         second_next_date = headers[1].text.strip()
         second_match_info = divs[1].text.strip().replace('\n\n', ' ').replace('relacja', '')
-        html += f'<p>{first_next_date} {first_match_info}</p><p>{second_next_date} {second_match_info}</p>'
+        html += f'<p>{first_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{first_match_info}</p><p>{second_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{second_match_info}</p>'
+
+    html += f'<h3><a href="https://www.flashscore.pl/pilka-nozna/hiszpania/laliga/tabela/"><b>La Liga</b></a>&nbsp;&nbsp;&nbsp;<a href="https://www.flashscore.pl/pilka-nozna/polska/fortuna-1-liga/tabela/"><b>1 Liga Polska</b></a></h3>'
 
     return html
 
