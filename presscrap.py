@@ -44,12 +44,12 @@ def create_output_file():
     html_header = '<html><header><title>Prasówka</title></header><body>'
     html_end = '</body></html>'
     day_info_block = prepare_day_info_block()
-    saint_of_a_day_block = prepare_saint_block()
+    # saint_of_a_day_block = prepare_saint_block() - the website server is down...
     next_matches_block = prepare_next_matches_block()
     file = open(output_file, 'w+', encoding='utf-8')
     file.write(html_header)
     file.write(day_info_block)
-    file.write(saint_of_a_day_block)
+    # file.write(saint_of_a_day_block) - the website server is down...
     file.write(next_matches_block)
 
     for index, out_div in enumerate(output_div_blocks):
@@ -191,10 +191,10 @@ def prepare_next_matches_block():
         calendar = soup.find_all('div', attrs={'id': 'calendarMatches'})[0]
         divs = calendar.find_all('div', attrs={'class': 'cmatch cmatch--inactive'})
         headers = calendar.find_all('header')[-len(divs):]
-        first_next_date = headers[0].text.strip()
-        first_match_info = divs[0].text.strip().replace('\n\n', ' ').replace('relacja', '')
-        second_next_date = headers[1].text.strip()
-        second_match_info = divs[1].text.strip().replace('\n\n', ' ').replace('relacja', '')
+        first_next_date = headers[0].text.strip() if len(headers) > 0 else 'Brak informacji'
+        first_match_info = divs[0].text.strip().replace('\n\n', ' ').replace('relacja', '') if len(divs) > 0 else ''
+        second_next_date = headers[1].text.strip() if len(headers) > 1 else 'Brak informacji'
+        second_match_info = divs[1].text.strip().replace('\n\n', ' ').replace('relacja', '') if len(divs) > 1 else ''
         html += f'<p>{first_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{first_match_info}</p><p>{second_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{second_match_info}</p>'
 
     html += f'<h3><a href="https://www.flashscore.pl/pilka-nozna/hiszpania/laliga/tabela/"><b>La Liga</b></a>&nbsp;&nbsp;&nbsp;<a href="https://www.flashscore.pl/pilka-nozna/polska/fortuna-1-liga/tabela/"><b>1 Liga Polska</b></a></h3>'
