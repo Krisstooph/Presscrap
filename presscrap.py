@@ -17,6 +17,9 @@ urls_to_open = {
     urls['WYKOP']: 'https://www.wykop.pl/hity/dnia',
     urls['MAGNA-POLONIA']: 'https://www.magnapolonia.org/kategoria/wiadomosci',
     urls['MYSL-POLSKA']: 'http://mysl-polska.pl',
+    'DZIENNIK': 'https://wiadomosci.dziennik.pl/',
+    'WYBORCZA': 'https://wiadomosci.gazeta.pl/wiadomosci/0,0.html',
+    'ONET': 'https://wiadomosci.onet.pl/',
 }
 
 football_teams_urls = {
@@ -44,12 +47,13 @@ def create_output_file():
     html_header = '<html><header><title>Prasówka</title></header><body>'
     html_end = '</body></html>'
     day_info_block = prepare_day_info_block()
-    # saint_of_a_day_block = prepare_saint_block() - the website server is down...
+    saint_of_a_day_block = prepare_saint_block()
     next_matches_block = prepare_next_matches_block()
+    left_news_block = prepare_left_news_block()
     file = open(output_file, 'w+', encoding='utf-8')
     file.write(html_header)
     file.write(day_info_block)
-    # file.write(saint_of_a_day_block) - the website server is down...
+    file.write(saint_of_a_day_block)
     file.write(next_matches_block)
 
     for index, out_div in enumerate(output_div_blocks):
@@ -60,6 +64,7 @@ def create_output_file():
             file.write(out_div)
             file.write('</div>')
 
+    file.write(left_news_block)
     file.write(html_end)
     file.close()
 
@@ -91,14 +96,16 @@ def prepare_articles_pch24():
     best_articles = {k: best_articles[k] for k in list(best_articles)[-articles_number:]}
 
     for article_url in best_articles:
-        output_article = prepare_article_div(best_articles[article_url][1], best_articles[article_url][2], article_url, article_color)
+        output_article = prepare_article_div(best_articles[article_url][1], best_articles[article_url][2], article_url,
+                                             article_color)
         output_div_blocks.append(output_article)
 
 
 def prepare_articles_wykop():
     articles_number = 4
     soup = get_soup_from_page(urls_to_open[urls['WYKOP']])
-    articles_divs = soup.find('ul', attrs={'id': 'itemsStream'}).find_all('li', attrs={'class': 'link'})[:articles_number]
+    articles_divs = soup.find('ul', attrs={'id': 'itemsStream'}).find_all('li', attrs={'class': 'link'})[
+                    :articles_number]
 
     for article_div in articles_divs:
         article_title = article_div.find('h2').find('a')['title'] if article_div.find('h2') is not None else '---'
@@ -130,7 +137,8 @@ def prepare_articles_magna():
 def prepare_articles_mysl():
     articles_number = 2
     soup = get_soup_from_page(urls_to_open[urls['MYSL-POLSKA']])
-    articles_divs = soup.find_all('div', attrs={'class': 'content'})[1].find_all('div', attrs={'class': 'node'}, recursive=False)[:articles_number]
+    articles_divs = soup.find_all('div', attrs={'class': 'btSingleItemRow'})[1].find_all('div', attrs={'class': 'node'},
+                                                                                 recursive=False)[:articles_number]
 
     for article_div in articles_divs:
         article_title = article_div.find('h2').text  # TODO! strip()?
@@ -143,7 +151,8 @@ def prepare_articles_mysl():
 
 def prepare_day_info_block():
     soup = get_soup_from_page(urls['INFO-DZIEN'])
-    info_block = soup.find_all('div', attrs={'class': 'section detailed extable'})[0].find_all('a', attrs={'name': 'weather_1'})[0]
+    info_block = \
+    soup.find_all('div', attrs={'class': 'section detailed extable'})[0].find_all('a', attrs={'name': 'weather_1'})[0]
     text_date = info_block.find_all('h5', attrs={'class': 'b0'})[0].text
     text_sun_rise = info_block.find_all('b')[0].text
     text_sun_set = info_block.find_all('b')[2].text
@@ -161,14 +170,17 @@ def prepare_saint_block():
     saint_class = saint_day.find_all('span')[1].text
     soup = get_soup_from_page(f'https://pl.wikipedia.org/w/index.php?sort=relevance&search={saint_name_ascii}')
     saint_short_info = soup.find_all('li')[4].text
-    saint_page = soup.find_all('li')[4].find_all('a')[0]['href'] if len(soup.find_all('li')[4].find_all('a')) > 0 else ''
+    saint_page = soup.find_all('li')[4].find_all('a')[0]['href'] if len(
+        soup.find_all('li')[4].find_all('a')) > 0 else ''
     saint_url = f"https://pl.wikipedia.org/{saint_page}"
 
     return f'<hr><div><h3>Święto: {saint_name}<p>Klasa: {saint_class}</p></h3><a href={saint_url}>{saint_short_info}</a></div><hr></br>'
 
 
 def get_rid_of_non_ascii_chars(saint_name):
-    return saint_name.lower().replace('ą', 'a').replace('ę', 'e').replace('ł', 'l').replace('ó', 'o').replace('ś', 's').replace('ż', 'z').replace('ź', 'z').replace('ć', 'c').replace('ń', 'n').replace(' ', '%20')
+    return saint_name.lower().replace('ą', 'a').replace('ę', 'e').replace('ł', 'l').replace('ó', 'o').replace('ś',
+                                                                                                              's').replace(
+        'ż', 'z').replace('ź', 'z').replace('ć', 'c').replace('ń', 'n').replace(' ', '%20')
 
 
 def get_saint_name(saint_info):
@@ -200,6 +212,43 @@ def prepare_next_matches_block():
     html += f'<h3><a href="https://www.flashscore.pl/pilka-nozna/hiszpania/laliga/tabela/"><b>La Liga</b></a>&nbsp;&nbsp;&nbsp;<a href="https://www.flashscore.pl/pilka-nozna/polska/fortuna-1-liga/tabela/"><b>1 Liga Polska</b></a></h3>'
 
     return html
+
+
+def prepare_left_news_block():
+    html = '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><hr><hr><ul>'
+    articles_number = 3
+
+    soup = get_soup_from_page(urls_to_open['DZIENNIK'])
+    article_list = soup.find_all('ul', attrs={'class': 'topicList'})[2].find_all('li')[:articles_number]
+
+    for article in article_list:
+        title = article.text.strip()
+        url = article.find('a')['href']
+
+        html += f'<li><a href="{url}">{title}</a></li>'
+
+    soup = get_soup_from_page(urls_to_open['ONET'])
+    article_list = soup.find_all('div', attrs={'class': 'wdgBests boxWrapper'})[0].find_all('a')[:articles_number]
+
+    for article in article_list:
+        title = article.text.strip()
+        url = article['href']
+
+        html += f'<li><a href="{url}">{title}</a></li>'
+
+    soup = get_soup_from_page(urls_to_open['WYBORCZA'])
+    article_list = soup.find_all('ul', attrs={'class': 'list_tiles'})[0].find_all('li')[:articles_number]
+
+    for article in article_list:
+        title = article.find('header').text.strip()
+        url = article.find('a')['href']
+
+        html += f'<li><a href="{url}">{title}</a></li>'
+
+    html += '</ul>'
+
+    return html
+
 
 functions_to_call = {
     urls['PCH24']: prepare_articles_pch24,
