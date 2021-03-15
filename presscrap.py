@@ -200,7 +200,7 @@ def prepare_next_matches_block():
         html += f'<h4>{current_team}</h4>'
         soup = get_soup_from_page(football_teams_urls[current_team])
         calendar = soup.find_all('div', attrs={'id': 'calendarMatches'})[0]
-        divs = calendar.find_all('div', attrs={'class': 'cmatch cmatch--inactive'})
+        divs = calendar.find_all('div', attrs={'class': 'cmatch cmatch--coming'})
         headers = calendar.find_all('header')[-len(divs):]
         first_next_date = headers[0].text.strip() if len(headers) > 0 else 'Brak informacji'
         first_match_info = divs[0].text.strip().replace('\n\n', ' ').replace('relacja', '') if len(divs) > 0 else ''
@@ -214,8 +214,8 @@ def prepare_next_matches_block():
 
 
 def prepare_left_news_block():
-    html = '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><hr><hr><ul>'
-    articles_number = 3
+    html = '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><hr><hr><br><br><ul style="font-family: Tahoma; font-size: 18px;">'
+    articles_number = 5
 
     soup = get_soup_from_page(urls_to_open['DZIENNIK'])
     article_list = soup.find_all('ul', attrs={'class': 'topicList'})[2].find_all('li')[:articles_number]
@@ -239,6 +239,9 @@ def prepare_left_news_block():
     article_list = soup.find_all('ul', attrs={'class': 'list_tiles'})[0].find_all('li')[:articles_number]
 
     for article in article_list:
+        if not article.find('header'):
+            continue
+
         title = article.find('header').text.strip()
         url = article.find('a')['href']
 
