@@ -7,7 +7,7 @@ urls = {
     'PCH24': 'https://www.pch24.pl',
     'WYKOP': 'https://www.wykop.pl',
     'MAGNA-POLONIA': 'https://www.magnapolonia.org',
-    'MYSL-POLSKA': 'http://mysl-polska.pl',
+    'MYSL-POLSKA': 'https://myslpolska.info',
     'INFO-DZIEN': 'https://pl.meteotrend.com/sunrise-sunset/pl/lodz/',
     'PIUS-X': 'https://www.piusx.org.pl/liturgia/kalendarz#dzis',
 }
@@ -16,7 +16,7 @@ urls_to_open = {
     urls['PCH24']: 'https://www.pch24.pl/wiadomosci,835,1,i.html',
     urls['WYKOP']: 'https://www.wykop.pl/hity/dnia',
     urls['MAGNA-POLONIA']: 'https://www.magnapolonia.org/kategoria/wiadomosci',
-    urls['MYSL-POLSKA']: 'http://mysl-polska.pl',
+    urls['MYSL-POLSKA']: 'https://myslpolska.info',
     'DZIENNIK': 'https://wiadomosci.dziennik.pl/',
     'WYBORCZA': 'https://wiadomosci.gazeta.pl/wiadomosci/0,0.html',
     'ONET': 'https://wiadomosci.onet.pl/',
@@ -137,13 +137,12 @@ def prepare_articles_magna():
 def prepare_articles_mysl():
     articles_number = 2
     soup = get_soup_from_page(urls_to_open[urls['MYSL-POLSKA']])
-    articles_divs = soup.find_all('div', attrs={'class': 'btSingleItemRow'})[1].find_all('div', attrs={'class': 'node'},
-                                                                                 recursive=False)[:articles_number]
+    articles_divs = soup.find_all('div', attrs={'class': 'btSingleItemRow'})[0].find_all('header')[:articles_number]
 
     for article_div in articles_divs:
-        article_title = article_div.find('h2').text  # TODO! strip()?
-        article_header = article_div.find('strong').text
-        article_url = f"{urls['MYSL-POLSKA']}{article_div.find('h2').find('a')['href']}"
+        article_title = article_div.find('a').text  # TODO! strip()?
+        article_header = ''
+        article_url = f"{article_div.find('a')['href']}"
         article_color = "B06D9B"
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
