@@ -1,8 +1,10 @@
 from datetime import datetime
 from urllib.request import urlopen, Request
 
-from bs4 import BeautifulSoup
 import requests
+from bs4 import BeautifulSoup
+
+PRESSCRAP_VERSION = 'v.4'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -23,7 +25,8 @@ urls_to_open = {
     urls['MAGNA-POLONIA']: 'https://www.magnapolonia.org/kategoria/wiadomosci',
     urls['MYSL-POLSKA']: 'https://myslpolska.info',
     urls['EWANGELIA']: 'https://archibial.pl/czytania/',
-    urls['YR']: 'https://www.yr.no/en/forecast/hourly-table/2-3093133/Poland/%C5%81%C3%B3d%C5%BA%20Voivodeship/powiat%20%C5%81%C3%B3dzki%20Wschodni/Lodz?i=0',
+    urls[
+        'YR']: 'https://www.yr.no/en/forecast/hourly-table/2-3093133/Poland/%C5%81%C3%B3d%C5%BA%20Voivodeship/powiat%20%C5%81%C3%B3dzki%20Wschodni/Lodz?i=0',
     urls['PASAZER']: 'https://www.pasazer.com/news',
     urls['AVHERALD']: 'https://avherald.com/',
     'DZIENNIK': 'https://wiadomosci.dziennik.pl/',
@@ -42,7 +45,8 @@ output_file = 'press.html'
 
 
 def get_soup_from_page(page_url):
-    req = Request(page_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36'})
+    req = Request(page_url, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36'})
     page = urlopen(req)
 
     return BeautifulSoup(page, 'html.parser')
@@ -166,14 +170,15 @@ def prepare_articles_mysl():
 def prepare_day_info_block():
     soup = get_soup_from_page(urls['INFO-DZIEN'])
     info_block = \
-    soup.find_all('div', attrs={'class': 'section detailed extable'})[0].find_all('a', attrs={'name': 'weather_1'})[0]
+        soup.find_all('div', attrs={'class': 'section detailed extable'})[0].find_all('a', attrs={'name': 'weather_1'})[
+            0]
     text_date = info_block.find_all('h5', attrs={'class': 'b0'})[0].text
     text_sun_rise = info_block.find_all('b')[0].text
     text_sun_set = info_block.find_all('b')[2].text
     text_day_duration = info_block.find_all('b')[3].text
     text_time = datetime.now().strftime("%H:%M:%S")
 
-    return f'<p style="font-size: 9px; margin-bottom: -20px;">v.3</p><div><h1>Dziś jest {text_date}</h1><h2>{text_time}</h2><p>Wschód słońca: <b>{text_sun_rise}</b></p><p>Zachód słońca: <b>{text_sun_set}</b></p><p>Dzień trwa: <b>{text_day_duration}</b> godzin</p></div>'
+    return f'<p style="font-size: 10px; margin-bottom: -20px;">{PRESSCRAP_VERSION}</p><div><h1>Dziś jest {text_date}</h1><h2>{text_time}</h2><p>Wschód słońca: <b>{text_sun_rise}</b></p><p>Zachód słońca: <b>{text_sun_set}</b></p><p>Dzień trwa: <b>{text_day_duration}</b> godzin</p></div>'
 
 
 def prepare_saint_block():
@@ -270,10 +275,12 @@ def prepare_left_news_block():
 def prepare_Evangel():
     html = '<hr><h3>Ewangelia:</h3>'
     soup = get_soup_from_page(urls['EWANGELIA'])
-    evangel = soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split('Medytacja nad Słowem')[0].strip()
+    evangel = \
+    soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split('Medytacja nad Słowem')[
+        0].strip()
     text_temp = evangel.split('\n\n')
 
-    if len(text_temp) <=3:
+    if len(text_temp) <= 3:
         text_temp = evangel.split('\n')
 
     siglum_and_title = text_temp[0].strip() + ' ' + text_temp[1].strip()
@@ -297,7 +304,7 @@ def prepare_weather():
     style_table_th_td = 'style="border: 1px solid black; text-align: center;"'
     html = f'<h3>Pogoda</h3><table {style_table_th_td}"><thead><tr>' \
            f'<th {style_table_th_td}>Godzina</th>' \
-           f'<th {style_table_th_td}>Pogoda</th>'\
+           f'<th {style_table_th_td}>Pogoda</th>' \
            f'<th {style_table_th_td}>Temperatura</th>' \
            f'<th {style_table_th_td}>Opady [mm]</th>' \
            f'<th {style_table_th_td}>Wiatr [m/s]</th>' \
@@ -374,7 +381,6 @@ def prepare_aviation_news():
     html += '</ul></div>'
 
     return html
-
 
 
 functions_to_call = {
