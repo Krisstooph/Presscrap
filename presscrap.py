@@ -2,6 +2,7 @@ from datetime import datetime
 from urllib.request import urlopen, Request
 
 from bs4 import BeautifulSoup
+import requests
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -10,6 +11,10 @@ urls = {
     'MYSL-POLSKA': 'https://myslpolska.info',
     'INFO-DZIEN': 'https://pl.meteotrend.com/sunrise-sunset/pl/lodz/',
     'PIUS-X': 'https://www.piusx.org.pl/liturgia/kalendarz#dzis',
+    'EWANGELIA': 'https://archibial.pl/czytania/',
+    'YR': 'https://www.yr.no/en/forecast/hourly-table/2-3093133/Poland/%C5%81%C3%B3d%C5%BA%20Voivodeship/powiat%20%C5%81%C3%B3dzki%20Wschodni/Lodz?i=0',
+    'PASAZER': 'https://www.pasazer.com',
+    'AVHERALD': 'https://avherald.com/',
 }
 
 urls_to_open = {
@@ -17,6 +22,10 @@ urls_to_open = {
     urls['WYKOP']: 'https://www.wykop.pl/hity/dnia',
     urls['MAGNA-POLONIA']: 'https://www.magnapolonia.org/kategoria/wiadomosci',
     urls['MYSL-POLSKA']: 'https://myslpolska.info',
+    urls['EWANGELIA']: 'https://archibial.pl/czytania/',
+    urls['YR']: 'https://www.yr.no/en/forecast/hourly-table/2-3093133/Poland/%C5%81%C3%B3d%C5%BA%20Voivodeship/powiat%20%C5%81%C3%B3dzki%20Wschodni/Lodz?i=0',
+    urls['PASAZER']: 'https://www.pasazer.com/news',
+    urls['AVHERALD']: 'https://avherald.com/',
     'DZIENNIK': 'https://wiadomosci.dziennik.pl/',
     'WYBORCZA': 'https://wiadomosci.gazeta.pl/wiadomosci/0,0.html',
     'ONET': 'https://wiadomosci.onet.pl/',
@@ -33,7 +42,7 @@ output_file = 'press.html'
 
 
 def get_soup_from_page(page_url):
-    req = Request(page_url, headers={'User-Agent': 'Mozilla/5.0'})
+    req = Request(page_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36'})
     page = urlopen(req)
 
     return BeautifulSoup(page, 'html.parser')
@@ -47,12 +56,17 @@ def create_output_file():
     html_header = '<html><header><title>Prasówka</title></header><body>'
     html_end = '</body></html>'
     day_info_block = prepare_day_info_block()
+    weather_block = prepare_weather()
+    evangel_of_a_day_block = prepare_Evangel()
     saint_of_a_day_block = prepare_saint_block()
     next_matches_block = prepare_next_matches_block()
     left_news_block = prepare_left_news_block()
+    aviation_news_block = prepare_aviation_news()
     file = open(output_file, 'w+', encoding='utf-8')
     file.write(html_header)
     file.write(day_info_block)
+    file.write(weather_block)
+    file.write(evangel_of_a_day_block)
     file.write(saint_of_a_day_block)
     file.write(next_matches_block)
 
@@ -65,6 +79,7 @@ def create_output_file():
             file.write('</div>')
 
     file.write(left_news_block)
+    file.write(aviation_news_block)
     file.write(html_end)
     file.close()
 
@@ -158,7 +173,7 @@ def prepare_day_info_block():
     text_day_duration = info_block.find_all('b')[3].text
     text_time = datetime.now().strftime("%H:%M:%S")
 
-    return f'<div><h1>Dziś jest {text_date}</h1><h2>{text_time}</h2><p>Wschód słońca: <b>{text_sun_rise}</b></p><p>Zachód słońca: <b>{text_sun_set}</b></p><p>Dzień trwa: <b>{text_day_duration}</b> godzin</p></div>'
+    return f'<p style="font-size: 9px; margin-bottom: -20px;">v.3</p><div><h1>Dziś jest {text_date}</h1><h2>{text_time}</h2><p>Wschód słońca: <b>{text_sun_rise}</b></p><p>Zachód słońca: <b>{text_sun_set}</b></p><p>Dzień trwa: <b>{text_day_duration}</b> godzin</p></div>'
 
 
 def prepare_saint_block():
@@ -250,6 +265,116 @@ def prepare_left_news_block():
     html += '</ul>'
 
     return html
+
+
+def prepare_Evangel():
+    html = '<hr><h3>Ewangelia:</h3>'
+    soup = get_soup_from_page(urls['EWANGELIA'])
+    evangel = soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split('Medytacja nad Słowem')[0].strip()
+    text_temp = evangel.split('\n\n')
+
+    if len(text_temp) <=3:
+        text_temp = evangel.split('\n')
+
+    siglum_and_title = text_temp[0].strip() + ' ' + text_temp[1].strip()
+    header = text_temp[2].strip()
+    text = ''
+
+    for txt in text_temp[3:-1]:
+        text += txt.strip()
+
+    html += f'<div>' \
+            f'<h4>{siglum_and_title}</h4>' \
+            f'<b>{header}</b>' \
+            f'<p style="font-family: Tahoma;">{text}</p>' \
+            f'<p style="font-family: Tahoma;"><i>{text_temp[-1].strip()}</i></p>' \
+            f'</div>'
+
+    return html
+
+
+def prepare_weather():
+    style_table_th_td = 'style="border: 1px solid black; text-align: center;"'
+    html = f'<h3>Pogoda</h3><table {style_table_th_td}"><thead><tr>' \
+           f'<th {style_table_th_td}>Godzina</th>' \
+           f'<th {style_table_th_td}>Pogoda</th>'\
+           f'<th {style_table_th_td}>Temperatura</th>' \
+           f'<th {style_table_th_td}>Opady [mm]</th>' \
+           f'<th {style_table_th_td}>Wiatr [m/s]</th>' \
+           f'</tr></thead><tbody>'
+    soup = get_soup_from_page(urls['YR'])
+    trs = soup.find_all('div', attrs={'class': 'fluid-table'})[0].find('tbody').find_all('tr')
+
+    for tr in trs:
+        tds = tr.find_all('td')
+
+        html += f'<tr>' \
+                f'<td {style_table_th_td}>{tds[0].text}</td>' \
+                f'<td {style_table_th_td}>{tds[1].text}</td>' \
+                f'<td {style_table_th_td}>{tds[2].text.replace("Temperature", "")}</td>' \
+                f'<td {style_table_th_td}>{tds[3].text}</td>' \
+                f'<td {style_table_th_td}>{tds[4].text[:-2]}</td>' \
+                f'</tr>'
+
+    html += '</tbody></table>'
+
+    return html
+
+
+def get_aviation_crash_info():
+    html = ''
+    headers = {'accept': '*/*',
+               'accept-encoding': 'gzip, deflate, br',
+               'accept-language': 'en-GB,en;q=0.9,en-US;q=0.8,hi;q=0.7,la;q=0.6',
+               'cache-control': 'no-cache',
+               'dnt': '1',
+               'pragma': 'no-cache',
+               'referer': 'https',
+               'sec-fetch-mode': 'no-cors',
+               'sec-fetch-site': 'cross-site',
+               'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
+               }
+
+    URL = "https://avherald.com/"
+
+    response = requests.get(url=URL, headers=headers)
+    crashes = response.text.split('crash.gif')
+
+    if len(crashes) > 2:
+        html += '<div><br><h3 style="font-family: Tahoma;">KATASTROFY</h3><ul style="font-family: Tahoma;">'
+
+        for crash in crashes[2:]:
+            header = crash.split('span')[:2][1].split('>')[1][:-2]
+            link = crash.split('span')[:2][0].split('href=\"')[1].split('"')[0]
+            html += f'<li>' \
+                    f'<a href={urls["AVHERALD"]}{link}><b>{header}</b></a>' \
+                    f'</li>'
+
+        html += '</ul></div>'
+
+    return html
+
+
+def prepare_aviation_news():
+    html = get_aviation_crash_info()
+    html += '<div><br><h3 style="font-family: Tahoma;">Lotnictwo</h3><ul style="font-family: Tahoma; font-size: 18px;">'
+    soup = get_soup_from_page(urls_to_open[urls['PASAZER']])
+    sections = soup.find('div', attrs={'class': 'content_def'}).find_all_next('section')[:-5]
+
+    for section in sections:
+        header = section.find('strong').text.strip()
+        text = section.find('a').text.strip().split('\n')[-1].strip()
+        link = f'{urls["PASAZER"]}{section.find("a")["href"]}'
+
+        html += '<li>' \
+                f'<a href={link}><b>{header}</b></a>' \
+                f'<p>{text}</p>' \
+                '</li>'
+
+    html += '</ul></div>'
+
+    return html
+
 
 
 functions_to_call = {
