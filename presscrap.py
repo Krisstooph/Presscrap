@@ -278,17 +278,24 @@ def prepare_Evangel():
     evangel = \
     soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split('Medytacja nad Słowem')[
         0].strip()
-    text_temp = evangel.split('\n\n')
+    evangel = evangel.replace('\r', ' ')
+    text_temp_first = evangel.split('\n\n')
 
-    if len(text_temp) <= 3:
-        text_temp = evangel.split('\n')
+    if len(text_temp_first) <= 3:
+        text_temp_first = evangel.split('\n')
+
+    text_temp = []
+
+    for txt in text_temp_first:
+        if txt:
+            text_temp.append(txt)
 
     siglum_and_title = text_temp[0].strip() + ' ' + text_temp[1].strip()
     header = text_temp[2].strip()
     text = ''
 
     for txt in text_temp[3:-1]:
-        text += txt.strip()
+        text += txt
 
     html += f'<div>' \
             f'<h4>{siglum_and_title}</h4>' \
