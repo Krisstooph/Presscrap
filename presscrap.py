@@ -4,6 +4,9 @@ from urllib.request import urlopen, Request
 import requests
 from bs4 import BeautifulSoup
 
+# TODO!
+# * PCH24 naprawić
+
 PRESSCRAP_VERSION = 'v.4'
 
 urls = {
@@ -274,35 +277,39 @@ def prepare_left_news_block():
 
 def prepare_Evangel():
     html = '<hr><h3>Ewangelia:</h3>'
-    soup = get_soup_from_page(urls['EWANGELIA'])
-    evangel = \
-    soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split('Medytacja nad Słowem')[
-        0].strip()
-    evangel = evangel.replace('\r', ' ')
-    text_temp_first = evangel.split('\n\n')
 
-    if len(text_temp_first) <= 3:
-        text_temp_first = evangel.split('\n')
+    try:
+        soup = get_soup_from_page(urls['EWANGELIA'])
+        evangel = \
+        soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split('Medytacja nad Słowem')[
+            0].strip()
+        evangel = evangel.replace('\r', ' ')
+        text_temp_first = evangel.split('\n\n')
 
-    text_temp = []
+        if len(text_temp_first) <= 3:
+            text_temp_first = evangel.split('\n')
 
-    for txt in text_temp_first:
-        if txt:
-            text_temp.append(txt)
+        text_temp = []
 
-    siglum_and_title = text_temp[0].strip() + ' ' + text_temp[1].strip()
-    header = text_temp[2].strip()
-    text = ''
+        for txt in text_temp_first:
+            if txt:
+                text_temp.append(txt)
 
-    for txt in text_temp[3:-1]:
-        text += txt
+        siglum_and_title = text_temp[0].strip() + ' ' + text_temp[1].strip()
+        header = text_temp[2].strip()
+        text = ''
 
-    html += f'<div>' \
-            f'<h4>{siglum_and_title}</h4>' \
-            f'<b>{header}</b>' \
-            f'<p style="font-family: Tahoma;">{text}</p>' \
-            f'<p style="font-family: Tahoma;"><i>{text_temp[-1].strip()}</i></p>' \
-            f'</div>'
+        for txt in text_temp[3:-1]:
+            text += txt
+
+        html += f'<div>' \
+                f'<h4>{siglum_and_title}</h4>' \
+                f'<b>{header}</b>' \
+                f'<p style="font-family: Tahoma;">{text}</p>' \
+                f'<p style="font-family: Tahoma;"><i>{text_temp[-1].strip()}</i></p>' \
+                f'</div>'
+    except:
+        print('Problem with getting Evangel of a day...')
 
     return html
 
@@ -398,6 +405,9 @@ functions_to_call = {
 }
 
 for function in functions_to_call:
-    functions_to_call[function]()
+    try:
+        functions_to_call[function]()
+    except:
+        print(f'Failed to load: {function}')
 
 create_output_file()
