@@ -101,7 +101,7 @@ def prepare_articles_pch24():
         article_title = list_a.text.strip()
         article_header = ''
         article_url = list_a['href']
-        article_color = "bb7777"
+        article_color = "e0726e"
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
 
@@ -120,7 +120,7 @@ def prepare_articles_wykop():
 
         article_header = article_div.find('p', attrs={'class': 'text'}).text
         article_url = article_div.find_all('a', attrs={'class': 'affect'})[1]['href']
-        article_color = "7777cc"
+        article_color = "99dae8"
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
 
@@ -134,7 +134,7 @@ def prepare_articles_magna():
         article_title = article_div.find('h2', attrs={'class': 'entry-title'}).text
         article_header = article_div.find('div', attrs={'class': 'entry-content'}).text
         article_url = article_div.find('h2', attrs={'class': 'entry-title'}).find('a')['href']
-        article_color = "FFC462"
+        article_color = "ede795"
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
 
@@ -148,7 +148,7 @@ def prepare_articles_mysl():
         article_title = article_div.find('a').text  # TODO! strip()?
         article_header = ''
         article_url = f"{article_div.find('a')['href']}"
-        article_color = "B06D9B"
+        article_color = "ab7e96"
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
 
