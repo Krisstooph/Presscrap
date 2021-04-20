@@ -5,9 +5,9 @@ import requests
 from bs4 import BeautifulSoup
 
 # TODO!
-# * PCH24 naprawić
 
-PRESSCRAP_VERSION = 'v.4'
+
+PRESSCRAP_VERSION = 'v.5'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -23,7 +23,7 @@ urls = {
 }
 
 urls_to_open = {
-    urls['PCH24']: 'https://www.pch24.pl/wiadomosci,835,1,i.html',
+    urls['PCH24']: 'https://pch24.pl/dzial/wiadomosci/',
     urls['WYKOP']: 'https://www.wykop.pl/hity/dnia',
     urls['MAGNA-POLONIA']: 'https://www.magnapolonia.org/kategoria/wiadomosci',
     urls['MYSL-POLSKA']: 'https://myslpolska.info',
@@ -94,32 +94,15 @@ def create_output_file():
 def prepare_articles_pch24():
     articles_number = 6
     soup = get_soup_from_page(urls_to_open[urls['PCH24']])
-    articles_divs = soup.find_all('div', attrs={'class': 'TplWarto'})
-    best_articles = {}
+    articles_divs = soup.find_all('div', attrs={'class': 'col-12'})[2:2 + articles_number]
 
     for article_div in articles_divs:
-        list_a = article_div.findChildren('a', recursive=True)
-        article_title = article_div.findChildren('div', attrs={'class': 'TagTitle mt10'})[0].text
-        article_header = article_div.find('p').text if article_div.find('p') else ''
-        article_url = f"{urls['PCH24']}{list_a[0]['href']}"
+        list_a = article_div.find_all('a')[1]
+        article_title = list_a.text.strip()
+        article_header = ''
+        article_url = list_a['href']
         article_color = "bb7777"
-        comments = 0
-        likes = 0
-        social_text = article_div.findChildren('div', attrs={'class': 'flLeft SocialInfo mt5'}, recursive=True)[0].text
-
-        if '' in social_text and '' in social_text:
-            social_array = social_text.strip().split('\n')[1].split('\n')
-            comments = int(social_array[0])
-            likes = int(social_array[1].strip())
-
-        best_articles[article_url] = (likes + comments * 2, article_title, article_header)
-
-    best_articles = {k: v for k, v in sorted(best_articles.items(), key=lambda item: item[1])}
-    best_articles = {k: best_articles[k] for k in list(best_articles)[-articles_number:]}
-
-    for article_url in best_articles:
-        output_article = prepare_article_div(best_articles[article_url][1], best_articles[article_url][2], article_url,
-                                             article_color)
+        output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
 
 
@@ -181,7 +164,7 @@ def prepare_day_info_block():
     text_day_duration = info_block.find_all('b')[3].text
     text_time = datetime.now().strftime("%H:%M:%S")
 
-    return f'<p style="font-size: 10px; margin-bottom: -20px;">{PRESSCRAP_VERSION}</p><div><h1>Dziś jest {text_date}</h1><h2>{text_time}</h2><p>Wschód słońca: <b>{text_sun_rise}</b></p><p>Zachód słońca: <b>{text_sun_set}</b></p><p>Dzień trwa: <b>{text_day_duration}</b> godzin</p></div>'
+    return f'<p style="font-size: 10px; margin-bottom: -20px;">{PRESSCRAP_VERSION}</p><div style="font-family: Tahoma;"><h1>Dziś jest {text_date}</h1><h2>{text_time}</h2><p>Wschód słońca: <b>{text_sun_rise}</b></p><p>Zachód słońca: <b>{text_sun_set}</b></p><p>Dzień trwa: <b>{text_day_duration}</b> godzin</p></div>'
 
 
 def prepare_saint_block():
@@ -281,8 +264,9 @@ def prepare_Evangel():
     try:
         soup = get_soup_from_page(urls['EWANGELIA'])
         evangel = \
-        soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split('Medytacja nad Słowem')[
-            0].strip()
+            soup.find_all('div', attrs={'class': 'czytania'})[0].text.split('EWANGELIA')[1].split(
+                'Medytacja nad Słowem')[
+                0].strip()
         evangel = evangel.replace('\r', ' ')
         text_temp_first = evangel.split('\n\n')
 
