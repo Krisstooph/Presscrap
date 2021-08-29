@@ -38,9 +38,9 @@ urls_to_open = {
 }
 
 football_teams_urls = {
-    'Polska': 'https://sportowefakty.wp.pl/pilka-nozna/polska/terminarz',
-    'Real Madryt': 'https://sportowefakty.wp.pl/pilka-nozna/real-madryt/terminarz',
-    'Widzew': 'https://sportowefakty.wp.pl/pilka-nozna/widzew-lodz/terminarz',
+    'Polska': 'https://www.meczyki.pl/druzyna,polska,1677',
+    'Real Madryt': 'https://www.meczyki.pl/druzyna,real-madryt,2016',
+    'Widzew': 'https://www.meczyki.pl/druzyna,widzew-lodz,1658',
 }
 
 output_div_blocks = []
@@ -205,13 +205,14 @@ def prepare_next_matches_block():
     for current_team in football_teams_urls:
         html += f'<h4>{current_team}</h4>'
         soup = get_soup_from_page(football_teams_urls[current_team])
-        calendar = soup.find_all('div', attrs={'id': 'calendarMatches'})[0]
-        divs = calendar.find_all('div', attrs={'class': 'cmatch cmatch--coming'})
-        headers = calendar.find_all('header')[-len(divs):]
-        first_next_date = headers[0].text.strip() if len(headers) > 0 else 'Brak informacji'
-        first_match_info = divs[0].text.strip().replace('\n\n', ' ').replace('relacja', '') if len(divs) > 0 else ''
-        second_next_date = headers[1].text.strip() if len(headers) > 1 else 'Brak informacji'
-        second_match_info = divs[1].text.strip().replace('\n\n', ' ').replace('relacja', '') if len(divs) > 1 else ''
+        next_match_text = soup.find_all('tr', attrs={'class': 'stacked'})[5].text.strip()
+        next_next_match_text = soup.find_all('tr', attrs={'class': 'stacked'})[6].text.strip()
+        next_match_data = next_match_text.split('\n')
+        next_next_match_data = next_next_match_text.split('\n')
+        first_next_date = next_match_data[0] if len(next_match_data) > 0 else 'Brak informacji'
+        first_match_info = next_match_data[1].strip() if len(next_match_data) > 1 else ''
+        second_next_date = next_next_match_data[0] if len(next_next_match_data) > 0 else 'Brak informacji'
+        second_match_info = next_next_match_data[1].strip() if len(next_next_match_data) > 1 else ''
         html += f'<p>{first_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{first_match_info}</p><p>{second_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{second_match_info}</p>'
 
     html += f'<h3><a href="https://www.flashscore.pl/pilka-nozna/hiszpania/laliga/tabela/"><b>La Liga</b></a>&nbsp;&nbsp;&nbsp;<a href="https://www.flashscore.pl/pilka-nozna/polska/fortuna-1-liga/tabela/"><b>1 Liga Polska</b></a></h3>'
