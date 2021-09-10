@@ -7,11 +7,12 @@ from bs4 import BeautifulSoup
 # TODO!
 
 
-PRESSCRAP_VERSION = 'v.5'
+PRESSCRAP_VERSION = 'v.7'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
     'WYKOP': 'https://www.wykop.pl',
+    'WYKOP_HITS': 'https://www.wykop.pl/hity/tygodnia/',
     'MAGNA-POLONIA': 'https://www.magnapolonia.org',
     'MYSL-POLSKA': 'https://myslpolska.info',
     'INFO-DZIEN': 'https://pl.meteotrend.com/sunrise-sunset/pl/lodz/',
@@ -25,6 +26,7 @@ urls = {
 urls_to_open = {
     urls['PCH24']: 'https://pch24.pl/dzial/wiadomosci/',
     urls['WYKOP']: 'https://www.wykop.pl/hity/dnia',
+    urls['WYKOP_HITS']: 'https://www.wykop.pl/hity/tygodnia/',
     urls['MAGNA-POLONIA']: 'https://www.magnapolonia.org/kategoria/wiadomosci',
     urls['MYSL-POLSKA']: 'https://myslpolska.info',
     urls['EWANGELIA']: 'https://archibial.pl/czytania/',
@@ -106,9 +108,7 @@ def prepare_articles_pch24():
         output_div_blocks.append(output_article)
 
 
-def prepare_articles_wykop():
-    articles_number = 4
-    soup = get_soup_from_page(urls_to_open[urls['WYKOP']])
+def write_articles_for_wykop(soup, articles_number, color):
     articles_divs = soup.find('ul', attrs={'id': 'itemsStream'}).find_all('li', attrs={'class': 'link'})[
                     :articles_number]
 
@@ -120,9 +120,21 @@ def prepare_articles_wykop():
 
         article_header = article_div.find('p', attrs={'class': 'text'}).text
         article_url = article_div.find_all('a', attrs={'class': 'affect'})[1]['href']
-        article_color = "99dae8"
+        article_color = color
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
+
+
+def prepare_articles_wykop():
+    articles_number = 4
+    soup = get_soup_from_page(urls_to_open[urls['WYKOP']])
+    write_articles_for_wykop(soup, articles_number, "99dae8")
+
+
+def prepare_articles_wykop_hits():
+    articles_number = 8
+    soup = get_soup_from_page(urls_to_open[urls['WYKOP_HITS']])
+    write_articles_for_wykop(soup, articles_number, "ccaaaa")
 
 
 def prepare_articles_magna():
@@ -384,6 +396,7 @@ def prepare_aviation_news():
 
 functions_to_call = {
     urls['PCH24']: prepare_articles_pch24,
+    urls['WYKOP_HITS']: prepare_articles_wykop_hits,
     urls['WYKOP']: prepare_articles_wykop,
     urls['MAGNA-POLONIA']: prepare_articles_magna,
     urls['MYSL-POLSKA']: prepare_articles_mysl,
