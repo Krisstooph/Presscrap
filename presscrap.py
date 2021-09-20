@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # TODO!
 
 
-PRESSCRAP_VERSION = 'v.7'
+PRESSCRAP_VERSION = 'v.8'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -119,7 +119,7 @@ def write_articles_for_wykop(soup, articles_number, color):
             continue
 
         article_header = article_div.find('p', attrs={'class': 'text'}).text
-        article_url = article_div.find_all('a', attrs={'class': 'affect'})[1]['href']
+        article_url = article_div.find('h2').find('a')['href']
         article_color = color
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
@@ -355,7 +355,7 @@ def get_aviation_crash_info():
 
     URL = "https://avherald.com/"
 
-    response = requests.get(url=URL, headers=headers)
+    response = requests.get(url=URL, headers=headers, verify=False)
     crashes = response.text.split('crash.gif')
 
     if len(crashes) > 2:
