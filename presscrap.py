@@ -238,6 +238,7 @@ def prepare_left_news_block():
 
     soup = get_soup_from_page(urls_to_open['DZIENNIK'])
     article_list = soup.find_all('ul', attrs={'class': 'topicList'})[2].find_all('li')[:articles_number]
+    html += '<h7 style="font-size: 11px;"><b>dziennik</b></h7>'
 
     for article in article_list:
         title = article.text.strip()
@@ -247,6 +248,7 @@ def prepare_left_news_block():
 
     soup = get_soup_from_page(urls_to_open['ONET'])
     article_list = soup.find_all('div', attrs={'class': 'wdgBests boxWrapper'})[0].find_all('a')[:articles_number]
+    html += '<h7 style="font-size: 11px;"><b>onet</b></h7>'
 
     for article in article_list:
         title = article.text.strip()
@@ -256,6 +258,7 @@ def prepare_left_news_block():
 
     soup = get_soup_from_page(urls_to_open['WYBORCZA'])
     article_list = soup.find_all('ul', attrs={'class': 'list_tiles'})[0].find_all('li')[:articles_number]
+    html += '<h7 style="font-size: 11px;"><b>wyborcza</b></h7>'
 
     for article in article_list:
         if not article.find('header'):
@@ -267,6 +270,13 @@ def prepare_left_news_block():
         html += f'<li><a href="{url}">{title}</a></li>'
 
     html += '</ul>'
+
+    return html
+
+
+def prepare_semi_left_news_block():
+    html = '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><hr><hr><br><br><ul style="font-family: Tahoma; font-size: 18px;">'
+    articles_number = 5
 
     return html
 
@@ -377,7 +387,7 @@ def prepare_aviation_news():
     html = get_aviation_crash_info()
     html += '<div><br><h3 style="font-family: Tahoma;">Lotnictwo</h3><ul style="font-family: Tahoma; font-size: 18px;">'
     soup = get_soup_from_page(urls_to_open[urls['PASAZER']])
-    sections = soup.find('div', attrs={'class': 'content_def'}).find_all_next('section')[:-5]
+    sections = soup.find('div', attrs={'class': 'content_def'}).find_all_next('section')[:-13]
 
     for section in sections:
         header = section.find('strong').text.strip()
