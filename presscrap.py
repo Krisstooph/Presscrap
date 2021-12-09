@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # TODO!
 
 
-PRESSCRAP_VERSION = 'v.8'
+PRESSCRAP_VERSION = 'v.9'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -101,8 +101,8 @@ def prepare_articles_pch24():
     for article_div in articles_divs:
         list_a = article_div.find_all('a')[1]
         article_title = list_a.text.strip()
-        article_header = ''
         article_url = list_a['href']
+        article_header = get_article_header_for_pch24(article_url)
         article_color = "e0726e"
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
@@ -138,7 +138,7 @@ def prepare_articles_wykop_hits():
 
 
 def prepare_articles_magna():
-    articles_number = 2
+    articles_number = 4
     soup = get_soup_from_page(urls_to_open[urls['MAGNA-POLONIA']])
     articles_divs = soup.find_all('div', attrs={'class': 'archive-desc-wrapper clearfix'})[:articles_number]
 
@@ -394,11 +394,19 @@ def prepare_aviation_news():
     return html
 
 
+def get_article_header_for_pch24(article_url):
+    soup = get_soup_from_page(article_url)
+    article_paragraphs = soup.find('article', attrs={'class': 'pch-article'}).find_all_next('p')
+    header = article_paragraphs[0].text.split('\n')[:3]
+
+    return f'{header[0]}</br></br>{header[2]}'
+
+
 functions_to_call = {
     urls['PCH24']: prepare_articles_pch24,
+    urls['MAGNA-POLONIA']: prepare_articles_magna,
     urls['WYKOP_HITS']: prepare_articles_wykop_hits,
     urls['WYKOP']: prepare_articles_wykop,
-    urls['MAGNA-POLONIA']: prepare_articles_magna,
     urls['MYSL-POLSKA']: prepare_articles_mysl,
 }
 
