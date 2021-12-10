@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # TODO!
 
 
-PRESSCRAP_VERSION = 'v.9'
+PRESSCRAP_VERSION = 'v.10'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -37,6 +37,9 @@ urls_to_open = {
     'DZIENNIK': 'https://wiadomosci.dziennik.pl/',
     'WYBORCZA': 'https://wiadomosci.gazeta.pl/wiadomosci/0,0.html',
     'ONET': 'https://wiadomosci.onet.pl/',
+    'TVP_INFO': 'https://www.tvp.info',
+    'WPOLITYCE': 'https://wpolityce.pl',
+    'NIEZALEZNA': 'https://niezalezna.pl',
 }
 
 football_teams_urls = {
@@ -70,6 +73,7 @@ def create_output_file():
     saint_of_a_day_block = prepare_saint_block()
     next_matches_block = prepare_next_matches_block()
     left_news_block = prepare_left_news_block()
+    semi_left_news_block = prepare_semi_left_news_block()
     aviation_news_block = prepare_aviation_news()
     file = open(output_file, 'w+', encoding='utf-8')
     file.write(html_header)
@@ -87,6 +91,7 @@ def create_output_file():
             file.write(out_div)
             file.write('</div>')
 
+    file.write(semi_left_news_block)
     file.write(left_news_block)
     file.write(aviation_news_block)
     file.write(html_end)
@@ -233,7 +238,7 @@ def prepare_next_matches_block():
 
 
 def prepare_left_news_block():
-    html = '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><hr><hr><br><br><ul style="font-family: Tahoma; font-size: 18px;">'
+    html = ''
     articles_number = 5
 
     soup = get_soup_from_page(urls_to_open['DZIENNIK'])
@@ -277,6 +282,36 @@ def prepare_left_news_block():
 def prepare_semi_left_news_block():
     html = '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><hr><hr><br><br><ul style="font-family: Tahoma; font-size: 18px;">'
     articles_number = 5
+
+    soup = get_soup_from_page(urls_to_open['TVP_INFO'])
+    article_list = soup.find_all('div', attrs={'class': 'news__container'})[0].find_all('div')[:articles_number]
+    html += '<h7 style="font-size: 11px;"><b>tvp info</b></h7>'
+
+    for article in article_list:
+        title = article.text.strip()
+        url = f'{urls_to_open["TVP_INFO"]}{article.find("a")["href"]}'
+
+        html += f'<li><a href="{url}">{title}</a></li>'
+
+    soup = get_soup_from_page(urls_to_open['WPOLITYCE'])
+    article_list = soup.find_all('ul', attrs={'class': 'widget widget-article-list'})[0].find_all('li')[:articles_number]
+    html += '<h7 style="font-size: 11px;"><b>wPolityce</b></h7>'
+
+    for article in article_list:
+        title = article.text.strip()
+        url = f'{urls_to_open["WPOLITYCE"]}{article.find("a")["href"]}'
+
+        html += f'<li><a href="{url}">{title}</a></li>'
+
+    soup = get_soup_from_page(urls_to_open['NIEZALEZNA'])
+    article_list = soup.find_all('ul', attrs={'class': 'latest latest-times latest-lines'})[0].find_all('li')[:articles_number]
+    html += '<h7 style="font-size: 11px;"><b>niezależna</b></h7>'
+
+    for article in article_list:
+        title = article.text.strip()
+        url = f'{urls_to_open["NIEZALEZNA"]}{article.find("a")["href"]}'
+
+        html += f'<li><a href="{url}">{title}</a></li>'
 
     return html
 
