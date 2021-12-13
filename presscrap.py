@@ -442,9 +442,13 @@ def prepare_aviation_news():
 def get_article_header_for_pch24(article_url):
     soup = get_soup_from_page(article_url)
     article_paragraphs = soup.find('article', attrs={'class': 'pch-article'}).find_all_next('p')
-    header = article_paragraphs[0].text.split('\n')[:3]
 
-    return f'{header[0]}</br></br>{header[2]}'
+    if len(article_paragraphs[0].text.split('\n')) == 1:
+        return f'{article_paragraphs[1].text}</br></br>{article_paragraphs[2].text}'
+    else:
+        header = article_paragraphs[0].text.split('\n')[:3]
+
+        return f'{header[0]}</br></br>{header[2]}'
 
 
 functions_to_call = {
