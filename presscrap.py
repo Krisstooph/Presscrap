@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # TODO!
 
 
-PRESSCRAP_VERSION = 'v.10'
+PRESSCRAP_VERSION = 'v.11'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -232,17 +232,17 @@ def prepare_next_matches_block():
         second_match_info = next_next_match_data[1].strip() if len(next_next_match_data) > 1 else ''
         html += f'<p>{first_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{first_match_info}</p><p>{second_next_date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{second_match_info}</p>'
 
-    html += f'<h3><a href="https://www.flashscore.pl/pilka-nozna/hiszpania/laliga/tabela/"><b>La Liga</b></a>&nbsp;&nbsp;&nbsp;<a href="https://www.flashscore.pl/pilka-nozna/polska/fortuna-1-liga/tabela/"><b>1 Liga Polska</b></a></h3>'
+    html += f'<h3><a href="https://www.flashscore.pl/pilka-nozna/hiszpania/laliga/tabela/"><b>La Liga</b></a>&nbsp;&nbsp;&nbsp;<a href="https://www.flashscore.pl/pilka-nozna/polska/pko-bp-ekstraklasa/tabela/"><b>1 Liga Polska</b></a></h3>'
 
     return html
 
 
 def prepare_left_news_block():
     html = ''
-    articles_number = 5
+    articles_number = 3
 
     soup = get_soup_from_page(urls_to_open['DZIENNIK'])
-    article_list = soup.find_all('ul', attrs={'class': 'topicList'})[2].find_all('li')[:articles_number]
+    article_list = soup.find_all('ul', attrs={'class': 'topicList'})[3].find_all('li')[:articles_number]
     html += '<h7 style="font-size: 11px;"><b>dziennik</b></h7>'
 
     for article in article_list:
@@ -252,7 +252,7 @@ def prepare_left_news_block():
         html += f'<li><a href="{url}">{title}</a></li>'
 
     soup = get_soup_from_page(urls_to_open['ONET'])
-    article_list = soup.find_all('div', attrs={'class': 'wdgBests boxWrapper'})[0].find_all('a')[:articles_number]
+    article_list = soup.find_all('ul', attrs={'class': 'topicList'})[0].find_all('a')[:articles_number]
     html += '<h7 style="font-size: 11px;"><b>onet</b></h7>'
 
     for article in article_list:
@@ -262,14 +262,11 @@ def prepare_left_news_block():
         html += f'<li><a href="{url}">{title}</a></li>'
 
     soup = get_soup_from_page(urls_to_open['WYBORCZA'])
-    article_list = soup.find_all('ul', attrs={'class': 'list_tiles'})[0].find_all('li')[:articles_number]
+    article_list = soup.find_all('li', attrs={'class': 'newsBox__item'})[:articles_number]
     html += '<h7 style="font-size: 11px;"><b>wyborcza</b></h7>'
 
     for article in article_list:
-        if not article.find('header'):
-            continue
-
-        title = article.find('header').text.strip()
+        title = article.text.strip()
         url = article.find('a')['href']
 
         html += f'<li><a href="{url}">{title}</a></li>'
@@ -281,10 +278,10 @@ def prepare_left_news_block():
 
 def prepare_semi_left_news_block():
     html = '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><hr><hr><br><br><ul style="font-family: Tahoma; font-size: 18px;">'
-    articles_number = 5
+    articles_number = 3
 
     soup = get_soup_from_page(urls_to_open['TVP_INFO'])
-    article_list = soup.find_all('div', attrs={'class': 'news__container'})[0].find_all('div')[:articles_number]
+    article_list = soup.find_all('div', attrs={'class': 'news__container'})[1].find_all('div', attrs={'class': 'news__item'})[:articles_number]
     html += '<h7 style="font-size: 11px;"><b>tvp info</b></h7>'
 
     for article in article_list:
@@ -294,7 +291,15 @@ def prepare_semi_left_news_block():
         html += f'<li><a href="{url}">{title}</a></li>'
 
     soup = get_soup_from_page(urls_to_open['WPOLITYCE'])
-    article_list = soup.find_all('ul', attrs={'class': 'widget widget-article-list'})[0].find_all('li')[:articles_number]
+    all_articles_on_page = soup.find_all('article', attrs={'class': 'tile'})
+    articles_and_comments = {}
+
+    for single_article in all_articles_on_page:
+        if len(single_article.find_all('span')) == 4:
+            articles_and_comments[single_article] = int(single_article.find_all('span')[1].text)
+
+    article_list = list(dict(sorted(articles_and_comments.items(), key=lambda item: item[1], reverse=True)).keys())[:articles_number]
+
     html += '<h7 style="font-size: 11px;"><b>wPolityce</b></h7>'
 
     for article in article_list:
@@ -304,7 +309,7 @@ def prepare_semi_left_news_block():
         html += f'<li><a href="{url}">{title}</a></li>'
 
     soup = get_soup_from_page(urls_to_open['NIEZALEZNA'])
-    article_list = soup.find_all('ul', attrs={'class': 'latest latest-times latest-lines'})[0].find_all('li')[:articles_number]
+    article_list = soup.find_all('div', attrs={'class': 'col'})[1].find_all('div', attrs={'class': 'item-news'})[:articles_number]
     html += '<h7 style="font-size: 11px;"><b>niezależna</b></h7>'
 
     for article in article_list:
