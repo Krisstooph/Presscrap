@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # TODO!
 
 
-PRESSCRAP_VERSION = 'v.11'
+PRESSCRAP_VERSION = 'v.12'
 
 urls = {
     'PCH24': 'https://www.pch24.pl',
@@ -31,7 +31,7 @@ urls_to_open = {
     urls['MYSL-POLSKA']: 'https://myslpolska.info',
     urls['EWANGELIA']: 'https://archibial.pl/czytania/',
     urls[
-        'YR']: 'https://www.yr.no/en/forecast/hourly-table/2-3093133/Poland/%C5%81%C3%B3d%C5%BA%20Voivodeship/powiat%20%C5%81%C3%B3dzki%20Wschodni/Lodz?i=0',
+        'YR']: 'https://www.yr.no/en/forecast/hourly-table/2-3102106/Poland/%C5%81%C3%B3d%C5%BA%20Voivodeship/Powiat%20%C5%82%C3%B3dzki%20wschodni/Bukowiec?i=0',
     urls['PASAZER']: 'https://www.pasazer.com/news',
     urls['AVHERALD']: 'https://avherald.com/',
     'DZIENNIK': 'https://wiadomosci.dziennik.pl/',
@@ -114,17 +114,16 @@ def prepare_articles_pch24():
 
 
 def write_articles_for_wykop(soup, articles_number, color):
-    articles_divs = soup.find('ul', attrs={'id': 'itemsStream'}).find_all('li', attrs={'class': 'link'})[
-                    :articles_number]
+    articles_divs = soup.find_all('section', attrs={'class': 'link-block'})[:articles_number]
 
     for article_div in articles_divs:
-        article_title = article_div.find('h2').find('a')['title'] if article_div.find('h2') is not None else '---'
+        article_title = article_div.find('h2').find('a').text.strip() if article_div.find('h2') is not None else '---'
 
         if article_title == '---':
             continue
 
-        article_header = article_div.find('p', attrs={'class': 'text'}).text
-        article_url = article_div.find('h2').find('a')['href']
+        article_header = article_div.find('div', attrs={'class': 'content'}).find('section', attrs={'class': 'info'}).find('a').text
+        article_url = f'{urls["WYKOP"]}{article_div.find("h2").find("a")["href"]}'
         article_color = color
         output_article = prepare_article_div(article_title, article_header, article_url, article_color)
         output_div_blocks.append(output_article)
