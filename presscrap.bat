@@ -1,1 +1,1 @@
-python presscrap.py
+python short.py
